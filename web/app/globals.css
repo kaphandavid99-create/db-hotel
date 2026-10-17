@@ -215,8 +215,8 @@ tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3) { min-width: 
 .dropdown-option-active { color: var(--green); background: #edf3ee; font-weight: 600; }
 .active-toolbar-icon { color: var(--green); border-color: #b6cbbc; background: #edf3ee; }
 .filter-panel { position: relative; z-index: 5; display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)) auto; align-items: end; gap: 9px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.filter-panel label { display: grid; gap: 5px; color: #667169; font-size: 11px; }
-.filter-panel select { width: 100%; height: 33px; padding: 0 8px; border: 1px solid #dfe4df; border-radius: 3px; color: #344138; background: white; font-size: 12px; }
+.filter-panel label { display: grid; min-width: 0; gap: 5px; color: #667169; font-size: 11px; }
+.filter-panel select { width: 100%; min-width: 0; height: 33px; padding: 0 8px; border: 1px solid #dfe4df; border-radius: 3px; color: #344138; background: white; font-size: 12px; }
 .filter-reset { min-height: 33px; padding: 0 8px; border: 0; color: var(--green); background: transparent; font-size: 11px; white-space: nowrap; cursor: pointer; }
 .filter-reset:hover { text-decoration: underline; }
 .workspace-page { display: grid; gap: 18px; }
@@ -296,6 +296,8 @@ tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3) { min-width: 
   .filter-tabs { width: 100%; height: 30px; }
   .filter-tabs button { flex: 1; }
   .search-field { margin-left: 0; flex: 1; }
+  .filter-panel { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .filter-reset { width: 100%; min-height: 44px; justify-self: stretch; border: 1px solid #dfe4df; border-radius: 3px; background: #fff; }
   .right-column { grid-template-columns: minmax(0, 1fr); }
   .bottom-strip { flex-wrap: wrap; }
   .bottom-strip > div:nth-child(2) { min-width: calc(100% - 52px); }
@@ -322,7 +324,5 @@ tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3) { min-width: 
   .metric-top { letter-spacing: .4px; }
   .form-row { grid-template-columns: minmax(0, 1fr); gap: 13px; }
   .reservation-modal { padding: 17px; }
-  .filter-panel { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
-  .filter-reset { justify-self: start; }
   .property-dropdown { left: 0; width: min(252px, calc(100vw - 42px)); }
 }
