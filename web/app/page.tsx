@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -64,6 +65,7 @@ function formatDate(value: string) {
 
 export default function Home({ section = "" }: { section?: string }) {
   const [reservations, setReservations] = useState(initialReservations);
+  const reduceMotion = useReducedMotion();
   const router = useRouter();
   const activeNav = navigation.find(({ href }) => href === (section ? `/${section}` : "/"))?.label ?? "Overview";
   const activeSection = activeNav === "Overview" ? null : activeNav as WorkspaceSection;
@@ -171,6 +173,12 @@ export default function Home({ section = "" }: { section?: string }) {
       <section className="main-area" id="overview">
         <header className="topbar"><button className="icon-button mobile-menu" onClick={() => setMobileNav(true)} aria-label="Open navigation"><Menu size={19} /></button><div className="breadcrumbs"><span>Workspace</span><span className="crumb-separator">/</span><strong>{activeNav}</strong></div><div className="topbar-actions"><span className="live-indicator"><i /> Operations live</span><button className="avatar-small" aria-label="Kaphan David profile">KD</button></div></header>
         <div className="content-wrap">
+          <motion.div
+            key={activeNav}
+            initial={reduceMotion ? false : { opacity: 0, filter: "blur(10px)", y: 10 }}
+            animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.55, ease: [0.22, 1, 0.36, 1] }}
+          >
           {activeSection ? <WorkspacePage section={activeSection} reservations={reservations} onNewReservation={() => setShowModal(true)} /> : <>
           <section className="welcome-row"><div><p className="eyebrow">SATURDAY, OCTOBER 17, 2026 <span>·</span> PORTLAND, OR</p><h1>Good morning, Kaphan<span>.</span></h1><p className="welcome-subtitle">Here&apos;s what&apos;s happening at Meridian House today.</p></div><button className="primary-button" onClick={() => setShowModal(true)}><Plus size={17} /> New reservation</button></section>
           {notice && <div className="notice"><Check size={16} />{notice}<button aria-label="Dismiss notification" onClick={() => setNotice("")}><X size={15} /></button></div>}
@@ -198,6 +206,7 @@ export default function Home({ section = "" }: { section?: string }) {
           <section className="bottom-strip"><div className="strip-icon"><ClipboardList size={17} /></div><div><strong>3 invoices need attention</strong><span>Payments due for completed or active stays</span></div><button onClick={() => navigateTo("Billing")}>Review billing <ArrowRight size={14} /></button><span className="strip-divider" /><div className="strip-mini"><span>Pending payments</span><strong>{money.format(124_000)}</strong></div></section>
           <footer className="page-footer"><span>DB HOTEL MANAGEMENT <i>·</i> OPERATIONS CONSOLE</span><span>Database-aligned demo view <i>·</i> {today}</span></footer>
           </>}
+          </motion.div>
         </div>
       </section>
 
