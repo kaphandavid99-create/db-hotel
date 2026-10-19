@@ -243,6 +243,26 @@ tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3) { min-width: 
 .workspace-stat > span { color: #737e77; font-size: 10px; font-weight: 650; letter-spacing: .7px; text-transform: uppercase; }
 .workspace-stat strong { overflow-wrap: anywhere; color: #2b3c31; font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 400; }
 .workspace-stat small { color: #87918a; font-size: 11px; }
+.review-summary-panel { padding-bottom: 16px; }
+.rating-distribution { display: grid; gap: 10px; padding: 7px 2px 2px; }
+.rating-row { display: grid; grid-template-columns: 66px minmax(0, 1fr) 24px; align-items: center; gap: 10px; color: #69766e; font-size: 11px; }
+.rating-row strong { color: #3a4b40; font-size: 11px; text-align: right; }
+.rating-track { height: 7px; overflow: hidden; border-radius: 5px; background: #edf0ec; }
+.rating-track span { display: block; height: 100%; border-radius: inherit; background: #b58a45; }
+.review-list-panel { padding-bottom: 0; }
+.review-list { display: grid; }
+.review-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 1px; border-top: 1px solid #edf0ed; }
+.review-main { min-width: 0; }
+.review-guest-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 9px; }
+.review-guest-line strong { color: #304036; font-size: 13px; font-weight: 600; }
+.review-guest-line > span { color: #929b94; font-size: 10px; }
+.review-main p { margin: 7px 0 9px; color: #59665e; font-size: 12px; line-height: 1.5; }
+.review-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; color: #89938b; font-size: 10px; }
+.review-rating { display: grid; flex: 0 0 auto; justify-items: end; gap: 4px; color: #b58a45; }
+.review-rating > span { white-space: nowrap; font-size: 14px; letter-spacing: 1px; }
+.review-rating strong { color: #425046; font-size: 11px; font-weight: 600; }
+.empty-stars { color: #d9ded8; }
+.empty-reviews { margin: 0; padding: 25px 10px; color: var(--muted); font-size: 12px; text-align: center; }
 .status-room-available { color: #43704d; background: #edf4ee; }
 .status-room-occupied { color: #546d5a; background: #eff2ef; }
 .status-room-being_cleaned { color: #98733a; background: #f8f3e8; }
@@ -311,6 +331,9 @@ tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3) { min-width: 
   .workspace-stat { min-height: 105px; padding: 11px; }
   .workspace-stat strong { font-size: 21px; }
   .workspace-table-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding: 10px 0; }
+  .review-row { gap: 8px; }
+  .review-meta { gap: 5px 9px; }
+  .review-rating > span { font-size: 12px; letter-spacing: 0; }
   .upcoming-booking { grid-template-columns: 1fr auto; gap: 5px; padding: 8px 0; }
   .upcoming-booking > span:nth-child(2) { grid-column: 1; }
   .upcoming-booking .service-count { grid-column: 2; grid-row: 1 / span 2; }

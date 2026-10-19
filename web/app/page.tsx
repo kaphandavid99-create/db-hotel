@@ -14,6 +14,7 @@ import {
   CircleDollarSign,
   ClipboardList,
   ConciergeBell,
+  MessageSquareText,
   LayoutDashboard,
   Menu,
   Plus,
@@ -56,6 +57,7 @@ const navigation = [
   { label: "Rooms", href: "/rooms", icon: BedDouble },
   { label: "Guests", href: "/guests", icon: Users },
   { label: "Services", href: "/services", icon: ConciergeBell },
+  { label: "Reviews", href: "/reviews", icon: MessageSquareText },
   { label: "Billing", href: "/billing", icon: CircleDollarSign },
 ];
 const money = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XAF", maximumFractionDigits: 0 });

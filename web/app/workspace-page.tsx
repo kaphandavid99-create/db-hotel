@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CircleDollarSign,
   ConciergeBell,
+  MessageSquareText,
   Plus,
   Users,
 } from "lucide-react";
@@ -25,7 +26,7 @@ export type ReservationRecord = {
   total: number;
 };
 
-export type WorkspaceSection = "Reservations" | "Rooms" | "Guests" | "Services" | "Billing";
+export type WorkspaceSection = "Reservations" | "Rooms" | "Guests" | "Services" | "Reviews" | "Billing";
 
 const money = new Intl.NumberFormat("fr-FR", {
   style: "currency",
@@ -49,6 +50,16 @@ const services = [
   { name: "Airport transfer", description: "One-way private transfer", price: 35_000, capacity: 8, bookings: 3 },
 ];
 
+const reviews = [
+  { id: "RV-1048", reservation: "RS-2044", guest: "Isabella Reed", room: "402", roomType: "Deluxe King", rating: 5, date: "2026-10-16", comment: "A beautiful room and an exceptionally helpful front desk team." },
+  { id: "RV-1047", reservation: "RS-2043", guest: "Marcus Ngu", room: "501", roomType: "Harbor Suite", rating: 4, date: "2026-10-15", comment: "Spacious suite and excellent breakfast. We would gladly return." },
+  { id: "RV-1046", reservation: "RS-2041", guest: "Amina Bello", room: "116", roomType: "Courtyard Twin", rating: 3, date: "2026-10-14", comment: "Comfortable stay overall; dining service was a little slow." },
+  { id: "RV-1045", reservation: "RS-2039", guest: "Daniel Etoa", room: "308", roomType: "Deluxe King", rating: 5, date: "2026-10-12", comment: "Everything was spotless, calm, and thoughtfully prepared." },
+  { id: "RV-1044", reservation: "RS-2037", guest: "Grace Mba", room: "214", roomType: "Garden Queen", rating: 2, date: "2026-10-10", comment: "The room was fine, but the late check-in took longer than expected." },
+  { id: "RV-1043", reservation: "RS-2035", guest: "Pauline Tchana", room: "503", roomType: "Harbor Suite", rating: 4, date: "2026-10-08", comment: "Warm service and a lovely view from the upper floor." },
+  { id: "RV-1042", reservation: "RS-2033", guest: "Ethan Fokou", room: "301", roomType: "Deluxe King", rating: 1, date: "2026-10-06", comment: "Several maintenance issues need attention in this room." },
+];
+
 function date(value: string) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T12:00:00`));
 }
@@ -59,6 +70,7 @@ function PageHeading({ section, onNewReservation }: { section: WorkspaceSection;
     Rooms: { eyebrow: "HOUSEKEEPING", title: "Rooms", description: "Room inventory, capacity, nightly rates, and operational status.", Icon: BedDouble },
     Guests: { eyebrow: "CLIENT DIRECTORY", title: "Guests", description: "Client contact details and reservation history.", Icon: Users },
     Services: { eyebrow: "GUEST EXPERIENCE", title: "Services", description: "Service catalog, prices, capacity, and today's bookings.", Icon: ConciergeBell },
+    Reviews: { eyebrow: "GUEST FEEDBACK", title: "Reviews", description: "Review ratings and comments linked to completed guest stays.", Icon: MessageSquareText },
     Billing: { eyebrow: "ACCOUNTS", title: "Billing", description: "Invoice status and reservation balances.", Icon: CircleDollarSign },
   };
   const { eyebrow, title, description, Icon } = heading[section];
@@ -107,6 +119,10 @@ function WorkspaceContent({ section, reservations, onNewReservation }: { section
     </>;
   }
 
+  if (section === "Reviews") {
+    return <ReviewsContent />;
+  }
+
   const invoices = reservations.slice(0, 4).map((reservation, index) => ({ ...reservation, invoiceId: `INV-${3108 - index}`, status: index === 2 ? "due" : index === 1 ? "partially_paid" : "paid", paid: index === 2 ? 0 : index === 1 ? Math.round(reservation.total / 2) : reservation.total }));
   return <>
     <motion.div className="workspace-stat-grid" variants={staggerContainer}><Stat label="Collected today" value={money.format(428_000)} detail="payments recorded" /><Stat label="Outstanding" value={money.format(124_000)} detail="across due invoices" /><Stat label="Invoices due" value="03" detail="need attention" /><Stat label="Payment methods" value="04" detail="cash, card, mobile, bank" /></motion.div>
@@ -120,4 +136,28 @@ function Stat({ label, value, detail }: { label: string; value: string; detail: 
 
 export default function WorkspacePage({ section, reservations, onNewReservation }: { section: WorkspaceSection; reservations: ReservationRecord[]; onNewReservation: () => void }) {
   return <motion.section className="workspace-page" variants={staggerContainer}><PageHeading section={section} onNewReservation={onNewReservation} /><WorkspaceContent section={section} reservations={reservations} onNewReservation={onNewReservation} /></motion.section>;
+}
+
+function ReviewsContent() {
+  const average = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  const distribution = [5, 4, 3, 2, 1].map((rating) => ({
+    rating,
+    count: reviews.filter((review) => review.rating === rating).length,
+  }));
+  return <>
+    <motion.div className="workspace-stat-grid" variants={staggerContainer}>
+      <Stat label="Average rating" value={average.toFixed(2)} detail="out of 5.00" />
+      <Stat label="Total reviews" value={String(reviews.length).padStart(2, "0")} detail="across all room types" />
+      <Stat label="5-star reviews" value={String(distribution[0].count).padStart(2, "0")} detail={`${Math.round((distribution[0].count / reviews.length) * 100)}% of feedback`} />
+      <Stat label="Room types reviewed" value={String(new Set(reviews.map((review) => review.roomType)).size).padStart(2, "0")} detail="with guest feedback" />
+    </motion.div>
+    <motion.section className="panel review-summary-panel" variants={revealItem}>
+      <div className="workspace-panel-heading"><div><p className="eyebrow">RATING DISTRIBUTION</p><h2>Guest satisfaction</h2></div><span className="workspace-record-count">{reviews.length} verified stays</span></div>
+      <div className="rating-distribution">{distribution.map(({ rating, count }) => <div className="rating-row" key={rating}><span>{rating} star{rating === 1 ? "" : "s"}</span><div className="rating-track"><span style={{ width: `${(count / reviews.length) * 100}%` }} /></div><strong>{count}</strong></div>)}</div>
+    </motion.section>
+    <motion.section className="panel workspace-table-panel review-list-panel" variants={revealItem}>
+      <div className="workspace-panel-heading"><div><p className="eyebrow">RECENT FEEDBACK</p><h2>Reviews</h2></div><span className="workspace-record-count">Newest first</span></div>
+      <div className="review-list">{reviews.length ? reviews.map((review) => <motion.article className="review-row" key={review.id} variants={revealItem}><div className="review-main"><div className="review-guest-line"><strong>{review.guest}</strong><span>{review.id}</span></div><p>{review.comment}</p><div className="review-meta"><span>{review.room} · {review.roomType}</span><span>{review.reservation}</span><span>{date(review.date)}</span></div></div><div className="review-rating" aria-label={`${review.rating} out of 5 stars`}><span aria-hidden="true">{"★".repeat(review.rating)}<span className="empty-stars">{"★".repeat(5 - review.rating)}</span></span><strong>{review.rating}.0</strong></div></motion.article>) : <p className="empty-reviews">No guest reviews yet.</p>}</div>
+    </motion.section>
+  </>;
 }
