@@ -7,9 +7,11 @@ tables already declared in `01_schema.sql`.
 ## Run
 
 Run against a development/test database, never a production database. Create the
-schema first if necessary, then seed and verify:
+schema and install the business-rule triggers first, then seed and verify:
 
 ```sh
+mysql -u YOUR_USER -p < sql/01_schema.sql
+mysql -u YOUR_USER -p hotel_management < sql/02_constraints.sql
 mysql -u YOUR_USER -p hotel_management < sql/02_seed_data.sql
 mysql -u YOUR_USER -p hotel_management < sql/03_seed_data_tests.sql
 ```
@@ -22,6 +24,10 @@ reservations, four services with weekday/weekend opening hours (and a spa closed
 Sunday), six service bookings, ten invoices, payments, and eight reviews. Client
 11 and client 12 intentionally have no reservations. Reservation 20 uses both
 Harbor Suite rooms through `reservation_rooms`.
+
+New reservations are staged as `pending`. After room links are added, the seed
+activates only newly created reservations with sufficient room capacity and no
+conflicting active stay. Existing reservation statuses remain unchanged.
 
 Before adding a reservation-room link, the script checks that the room type
 matches the seed catalog and that no confirmed/completed stay already overlaps

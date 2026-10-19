@@ -188,7 +188,7 @@ USE hotel_management;
 
 -- 7. RESERVATION_ROOMS
 -- BR-04: A reservation can include multiple rooms.
--- BR-07: Room overlap validation will be added later.
+-- BR-07: Active room overlap validation is installed by 02_constraints.sql.
 -- BR-08: Preserve the nightly price agreed at booking.
 
 CREATE TABLE reservation_rooms (
@@ -269,8 +269,8 @@ CREATE TABLE service_opening_hours (
 
 -- 10. SERVICE_BOOKINGS
 -- BR-12: Book a service during a guest's stay.
--- Capacity, opening hours and stay dates require
--- additional validation in the constraints stage.
+-- Capacity, opening hours and stay dates are validated
+-- by triggers installed in 02_constraints.sql.
 
 CREATE TABLE service_bookings (
     service_booking_id INT UNSIGNED AUTO_INCREMENT,
@@ -309,7 +309,7 @@ CREATE TABLE service_bookings (
 
 -- 11. INVOICES
 -- BR-13: At most one invoice per reservation.
--- BR-15: Payment status is maintained later.
+-- BR-15: Invoice payment status is maintained by 02_constraints.sql.
 
 CREATE TABLE invoices (
     invoice_id INT UNSIGNED AUTO_INCREMENT,
@@ -374,7 +374,7 @@ CREATE TABLE invoice_lines (
 
 -- 13. PAYMENTS
 -- BR-14: Multiple payments may be made toward an invoice.
--- BR-15: Payment procedure will update invoice status.
+-- BR-15: sp_record_payment and payment triggers maintain invoice status.
 
 CREATE TABLE payments (
     payment_id INT UNSIGNED AUTO_INCREMENT,
@@ -405,7 +405,7 @@ CREATE TABLE payments (
 -- 14. REVIEWS
 -- BR-16: At most one review per reservation.
 -- BR-17: Ratings must be between 1 and 5.
--- Completed-stay validation will be added later.
+-- Completed-stay validation is installed by 02_constraints.sql.
 
 CREATE TABLE reviews (
     review_id INT UNSIGNED AUTO_INCREMENT,

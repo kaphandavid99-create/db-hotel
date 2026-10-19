@@ -24,6 +24,8 @@ DROP TEMPORARY TABLE IF EXISTS _seed_review_rows;
 DROP TEMPORARY TABLE IF EXISTS _seed_payment_cases;
 DROP TEMPORARY TABLE IF EXISTS _seed_invoice_map;
 DROP TEMPORARY TABLE IF EXISTS _seed_reservation_map;
+DROP TEMPORARY TABLE IF EXISTS _seed_activatable_reservations;
+DROP TEMPORARY TABLE IF EXISTS _seed_preexisting_reservations;
 DROP TEMPORARY TABLE IF EXISTS _seed_service_bookings;
 DROP TEMPORARY TABLE IF EXISTS _seed_service_hours;
 DROP TEMPORARY TABLE IF EXISTS _seed_services;
@@ -296,6 +298,21 @@ WHERE NOT EXISTS (
 -- Reservation identity uses the seeded client's unique email plus dates/guest
 -- count. Status is intentionally not part of the key so a later status change
 -- does not make a rerun create a duplicate. No AUTO_INCREMENT values are assumed.
+CREATE TEMPORARY TABLE _seed_preexisting_reservations (
+    reservation_id INT UNSIGNED NOT NULL PRIMARY KEY
+);
+
+INSERT INTO _seed_preexisting_reservations (reservation_id)
+SELECT existing_reservation.reservation_id
+FROM _seed_reservations AS seed
+INNER JOIN clients AS client
+    ON client.email = seed.client_email
+INNER JOIN reservations AS existing_reservation
+    ON existing_reservation.client_id = client.client_id
+   AND existing_reservation.check_in_date = seed.check_in_date
+   AND existing_reservation.check_out_date = seed.check_out_date
+   AND existing_reservation.guest_count = seed.guest_count;
+
 INSERT INTO reservations
     (client_id, check_in_date, check_out_date, guest_count, reservation_status, created_at, cancelled_at)
 SELECT
@@ -303,13 +320,9 @@ SELECT
     seed.check_in_date,
     seed.check_out_date,
     seed.guest_count,
-    seed.reservation_status,
+    'pending',
     TIMESTAMP(DATE_SUB(seed.check_in_date, INTERVAL 30 DAY)),
-    CASE
-        WHEN seed.reservation_status = 'cancelled'
-            THEN TIMESTAMP(DATE_SUB(seed.check_in_date, INTERVAL 1 DAY))
-        ELSE NULL
-    END
+    NULL
 FROM _seed_reservations AS seed
 INNER JOIN clients AS client
     ON client.email = seed.client_email
@@ -374,6 +387,59 @@ AND NOT EXISTS (
       AND conflicting_reservation.check_in_date < seed_reservation.check_out_date
       AND conflicting_reservation.check_out_date > seed_reservation.check_in_date
 );
+
+CREATE TEMPORARY TABLE _seed_activatable_reservations (
+    reservation_id INT UNSIGNED NOT NULL PRIMARY KEY
+);
+
+INSERT INTO _seed_activatable_reservations (reservation_id)
+SELECT reservation_map.reservation_id
+FROM _seed_reservation_map AS reservation_map
+INNER JOIN _seed_reservations AS seed
+    ON seed.seed_no = reservation_map.seed_no
+INNER JOIN reservations AS reservation
+    ON reservation.reservation_id = reservation_map.reservation_id
+WHERE seed.reservation_status IN ('confirmed', 'completed')
+  AND (
+      SELECT COALESCE(SUM(room.max_capacity), 0)
+      FROM reservation_rooms AS reserved_room
+      INNER JOIN rooms AS room ON room.room_id = reserved_room.room_id
+      WHERE reserved_room.reservation_id = reservation.reservation_id
+  ) >= reservation.guest_count
+  AND NOT EXISTS (
+      SELECT 1
+      FROM reservation_rooms AS own_room
+      INNER JOIN reservation_rooms AS other_room
+          ON other_room.room_id = own_room.room_id
+         AND other_room.reservation_id <> reservation.reservation_id
+      INNER JOIN reservations AS other_reservation
+          ON other_reservation.reservation_id = other_room.reservation_id
+         AND other_reservation.reservation_status IN ('confirmed', 'completed')
+         AND reservation.check_in_date < other_reservation.check_out_date
+         AND reservation.check_out_date > other_reservation.check_in_date
+      WHERE own_room.reservation_id = reservation.reservation_id
+  );
+
+UPDATE reservations AS reservation
+INNER JOIN _seed_reservation_map AS reservation_map
+    ON reservation_map.reservation_id = reservation.reservation_id
+INNER JOIN _seed_reservations AS seed
+    ON seed.seed_no = reservation_map.seed_no
+LEFT JOIN _seed_preexisting_reservations AS preexisting
+    ON preexisting.reservation_id = reservation.reservation_id
+LEFT JOIN _seed_activatable_reservations AS activatable
+    ON activatable.reservation_id = reservation.reservation_id
+SET reservation.reservation_status = seed.reservation_status,
+    reservation.cancelled_at = CASE
+        WHEN seed.reservation_status = 'cancelled'
+            THEN TIMESTAMP(DATE_SUB(seed.check_in_date, INTERVAL 1 DAY))
+        ELSE NULL
+    END
+WHERE preexisting.reservation_id IS NULL
+  AND (
+      seed.reservation_status IN ('pending', 'cancelled')
+      OR activatable.reservation_id IS NOT NULL
+  );
 
 -- Service slots are inside the associated completed reservations.
 INSERT INTO service_bookings
