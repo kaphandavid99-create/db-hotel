@@ -1,17 +1,5 @@
 USE hotel_management;
 
--- Parameter contract (set these session variables before running the relevant query):
--- SET @room_type_name = 'Standard';
--- SET @check_in_date = '2026-06-01';
--- SET @check_out_date = '2026-06-04';
--- SET @report_start = '2026-06-01';
--- SET @report_end = '2026-08-01'; -- exclusive
--- Session variables keep values separate from SQL text and work in MySQL Workbench/CLI.
-
--- 1. Available rooms by type and half-open stay interval [check-in, check-out).
--- Confirmed/completed reservations block rooms; pending requests do not hold inventory.
--- The current operational status is not historical availability; only currently
--- out-of-service rooms are excluded. Occupied/being-cleaned statuses are date-agnostic.
 SELECT
     room.room_id,
     room.room_number,
@@ -40,12 +28,6 @@ WHERE room_type.type_name = @room_type_name
   )
 ORDER BY room.floor_number, room.room_number;
 
-
--- 2. Monthly occupancy for [@report_start, @report_end).
--- Inventory has no effective dates or historical maintenance records, so every
--- room currently stored contributes one available night per date in the range.
--- Pending/cancelled reservations are not nights sold; checked-out stays are.
--- Overlapping reservation rows are unioned per room/month before summing.
 WITH RECURSIVE
 report_parameters AS (
     SELECT
@@ -143,11 +125,6 @@ LEFT JOIN monthly_sold_totals AS sold
 ORDER BY month.month_start;
 
 
--- 3. Monthly paid revenue by payment_date, prorated across itemized invoice lines.
--- Applied payments are capped at the invoice's gross line total to avoid treating
--- overpayments as revenue. Partial payments inherit the invoice's line mix. Tax is
--- included; miscellaneous lines are exposed separately so total reconciles exactly.
--- Cancelled reservations are excluded. The schema has no refunds/reversals to net.
 WITH RECURSIVE
 report_parameters AS (
     SELECT
@@ -243,9 +220,6 @@ LEFT JOIN monthly_revenue AS revenue
 ORDER BY month.month_start;
 
 
--- 4. Unpaid/partially-paid invoices with positive outstanding balances.
--- Invoice totals include tax; all payment rows are aggregated before joining so
--- payments and invoice lines cannot multiply each other. No refund adjustment exists.
 WITH invoice_line_totals AS (
     SELECT
         line.invoice_id,
@@ -300,8 +274,6 @@ WHERE outstanding_balance > 0
 ORDER BY invoice_date ASC, invoice_id ASC;
 
 
--- 5. Average reviews per room type. The distinct review/type CTE ensures a
--- multi-room reservation cannot inflate a room type's review count or average.
 WITH review_room_types AS (
     SELECT DISTINCT
         review.review_id,
@@ -327,10 +299,6 @@ GROUP BY room_type.room_type_id, room_type.type_name
 ORDER BY room_type.type_name;
 
 
--- 6. Top five clients by actual paid amounts on non-cancelled reservations.
--- Payment totals are capped to invoiced gross totals; pending reservations may
--- have payments, but only confirmed/completed reservations count as stays.
--- Positive-only payments are the schema's only payment representation.
 WITH invoice_line_totals AS (
     SELECT
         line.invoice_id,
